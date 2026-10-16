@@ -1,0 +1,60 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.env
+.env.local
+.env.bak
+.cache/
+*.log
+*.bak
+.DS_Store
+report*.json
+out/
+tmp/
+web_data/
+
+# pytest artifacts (local test runs) — never pushed
+pytest-of-*/
+Yhs-ApiDetect-test-*
+.pytest-tmp/
+# tempfile fallback when the system temp root is unwritable
+/tmp*/
+
+# Local-only working files — machine-specific, never pushed
+.venv/
+.local/
+.dsh-uploads/
+sample-evidence/
+
+# Editor / IDE local config — points at this machine's .venv, never pushed
+.vscode/
+
+# Local image-e2e run artifacts (requests, responses, generated images)
+Yhs-ApiDetect-image-e2e-*/
+
+# Throwaway preview renders — process shots, not project assets
+/*-preview.svg
+design-previews/image-page/*.png
+design-previews/image-page/*.jpg
+
+# Maintainer-only tools — kept locally, not in public tree
+scripts/push-both.sh
+verify_sample.py
+
+# Local archives, diagnostics and third-party scratch checkout
+/1/
+/pc/
+/data/baselines/*.json
+/design/**/*.png
+/design/**/verification.json
+/_archive_*/
+/artifacts/
+/_repro_attrerr.py
+.ruff_cache/
+node_modules/
+scripts/bai_api_probe.py

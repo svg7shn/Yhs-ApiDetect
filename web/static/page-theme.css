@@ -1,0 +1,64 @@
+html[data-theme] body.tool-page{--surface:#101a35;--danger-soft:#391e2c;--warning-soft:#352b18;--red:#ff9199;--amber:#f2c879;--bg:#05091b;--bg-soft:#101a35;--text:#f6f8ff;--ink:#f6f8ff;--muted:#a5aecb;--line:#ffffff20;--glass:#121c3d99;--accent:#d4f64c;--nav:#080f24ed;--soft:#ffffff08;--green:#69d6ac;--green-dark:#69d6ac;--green-soft:#16382f;--shadow:0 8px 40px #0003;color-scheme:dark}
+html[data-theme=light] body.tool-page{--surface:#ffffff;--danger-soft:#fff0f1;--warning-soft:#fff5df;--red:#b42335;--amber:#895315;--bg:#f4f8ff;--bg-soft:#eef3fb;--text:#13243e;--ink:#13243e;--muted:#546780;--line:#204b8825;--glass:#ffffffcc;--accent:#c9ee35;--nav:#f7fbfff0;--soft:#163f8508;--green:#087453;--green-dark:#087453;--green-soft:#d1fae5;--shadow:0 8px 40px #3a6dbb15;color-scheme:light}
+.tool-page{background:radial-gradient(ellipse at 65% 20%,#446aff12,transparent 65%),var(--bg);color:var(--text);font-family:'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.65}
+.tool-page .container{width:min(1180px,calc(100% - 48px));max-width:1180px;margin:118px auto 48px;padding:0}
+.tool-page .card{background:var(--glass);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.tool-page input,.tool-page select,.tool-page textarea{background:var(--bg-soft);color:var(--text);border-color:var(--line);border-radius:10px}
+.tool-page .btn{border-radius:24px}.tool-page .btn-primary{background:var(--accent);border-color:var(--accent);color:#15200c}
+.tool-page h1{letter-spacing:-1px}.tool-page .site-footer{background:var(--bg-soft);border-color:var(--line)}
+@media(max-width:760px){.tool-page .container{width:calc(100% - 28px);margin-top:150px}.tool-page table{display:block;overflow-x:auto}}
+/* All tool surfaces inherit the selected theme at the body owner. */
+html[data-theme] body.tool-page{--glass-fill:var(--glass);--glass-fill-blur:var(--glass);--glass-line:var(--line);--glass-shadow:var(--shadow);background:radial-gradient(ellipse at 75% 10%,#446aff26,transparent 60%),var(--bg);background-attachment:fixed;color:var(--text);color-scheme:dark}
+html[data-theme=light] body.tool-page{color-scheme:light}
+html[data-theme] body.tool-page::before{background:repeating-linear-gradient(0deg,transparent,transparent 4px,#ffffff08 5px);opacity:.18}
+html[data-theme] .tool-page :is(.auth-page,.img-page,.channel-page){max-width:none;padding:16px 0 48px;color:var(--text)}
+html[data-theme] .tool-page :is(.hero,.auth-hero,.img-hero){text-align:left;max-width:900px;margin:24px 0 40px}
+html[data-theme] .tool-page h1{font-size:clamp(32px,4vw,56px);line-height:1.2;letter-spacing:-1.5px;color:var(--text)}
+html[data-theme] .tool-page :is(.card,.form-card,.result-card,.auth-panel,.img-panel,.ch-panel,.auth-dialog,.ch-dialog,.faq-category,.faq-toc){background:var(--glass);color:var(--text);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(16px)}
+html[data-theme] .tool-page :is(input,select,textarea){background:var(--bg-soft);color:var(--text);border-color:var(--line);box-shadow:none}
+html[data-theme] .tool-page :is(.ch-muted,.ch-hint,.ch-empty){color:var(--muted)}
+html[data-theme] .tool-page :is(.ch-group,.ch-chip,.ch-record,.ch-target,.ch-tabs,.ch-empty){background:var(--bg-soft);color:var(--text);border-color:var(--line)}
+html[data-theme] .tool-page :is(.btn,.auth-btn,.img-btn,.channel-page button,.ch-dialog button){background:var(--bg-soft);color:var(--text);border-color:var(--line);border-radius:24px}
+html[data-theme] .tool-page :is(.btn-primary,.auth-btn-primary,.img-btn-primary,.channel-page button.ch-primary,.ch-dialog button.ch-primary){background:var(--accent);color:#15200c;border-color:var(--accent)}
+html[data-theme] .tool-page :is(.btn-primary,.auth-btn-primary,.img-btn-primary,.ch-primary):hover{filter:brightness(.94)}
+html[data-theme] .tool-page .site-footer{background:var(--bg-soft);border-color:var(--line);color:var(--muted)}
+html[data-theme] .tool-page :is(input,button,select,textarea,a):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:760px){html[data-theme] .tool-page :is(.auth-page,.img-page,.channel-page){padding:0 0 32px}html[data-theme] .tool-page :is(.auth-panel,.img-panel,.ch-panel,.form-card){padding:20px 16px}html[data-theme] .tool-page h1{letter-spacing:-.5px}}
+/* Nested surfaces and state-specific colors must follow the same theme. */
+html[data-theme] body.tool-page :is(.combo-list,.metric,.batch-job,.faq-entry,.auth-trace){background:var(--surface);color:var(--text);border-color:var(--line)}
+html[data-theme] body.tool-page :is(.ch-badge,.ch-inconclusive,.ch-unknown,.probe-neutral,.tier-protocol){background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
+html[data-theme] body.tool-page :is(.ch-notice,.ch-authentic,.ch-pass,.probe-ok,.auth-badge-ok){background:var(--green-soft);color:var(--green-dark);border-color:var(--green)}
+html[data-theme] body.tool-page :is(.ch-suspect,.probe-warn,.tier-behavioral,.auth-badge-warn,.notes-card){background:var(--warning-soft);color:var(--amber);border-color:var(--amber)}
+html[data-theme] body.tool-page :is(.ch-error,.ch-fail,.probe-fail,.auth-alert,.auth-badge-fail,.form-error-rich,.alert-card){background:var(--danger-soft);color:var(--red);border-color:var(--red)}
+html[data-theme] body.tool-page :is(.ch-detail,.form-error-body,.note-item p,.batch-error-detail){color:inherit}
+html[data-theme] body.tool-page :is(.ch-table th,.ch-sig-id,.ch-meta){color:var(--muted)}
+html[data-theme] body.tool-page .ch-chip:has(input:checked),html[data-theme] body.tool-page .ch-tabs button[aria-selected=true]{background:var(--green-soft);color:var(--green-dark);border-color:var(--green)}
+html[data-theme] body.tool-page .ch-target .ch-remove{background:var(--danger-soft);color:var(--red)}
+html[data-theme] body.tool-page .auth-modal-mask,html[data-theme] body.tool-page .auth-dialog::backdrop{background:#030817aa}
+/* Theme owner overrides legacy page skins and all channel states. */
+html[data-theme] body.tool-page[data-page="/channel"]{background:radial-gradient(ellipse at 65% 5%,#446aff18,transparent 60%),var(--bg);color:var(--text)}
+html[data-theme] body.tool-page .channel-page,html[data-theme] body.tool-page .ch-dialog{color:var(--text)}
+html[data-theme] body.tool-page .ch-dialog{background:var(--glass);border-color:var(--line);box-shadow:var(--shadow)}
+html[data-theme] body.tool-page .ch-dialog::backdrop{background:#030817aa}
+html[data-theme] body.tool-page :is(.ch-panel,.ch-group,.ch-record,.ch-target,.ch-evidence){background:var(--surface);border-color:var(--line);color:var(--text)}
+html[data-theme] body.tool-page :is(.ch-muted,.ch-hint,.ch-meta,.ch-sig-id,.ch-table th,.ch-detail){color:var(--muted)}
+html[data-theme] body.tool-page :is(.channel-page input,.channel-page select,.ch-dialog select){background:var(--bg-soft);color:var(--text);border-color:var(--line)}
+html[data-theme] body.tool-page :is(.channel-page button,.ch-dialog button){background:var(--bg-soft);color:var(--text);border-color:var(--line)}
+html[data-theme] body.tool-page :is(.ch-badge.ch-pass,.ch-authentic,.ch-notice){background:var(--green-soft);color:var(--green-dark);border-color:var(--green)}
+html[data-theme] body.tool-page :is(.ch-badge.ch-fail,.ch-error,.ch-remove){background:var(--danger-soft);color:var(--red);border-color:var(--red)}
+html[data-theme] body.tool-page :is(.ch-badge.ch-error,.ch-suspect){background:var(--warning-soft);color:var(--amber);border-color:var(--amber)}
+html[data-theme] body.tool-page :is(.ch-badge.ch-unknown,.ch-inconclusive){background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
+html[data-theme] body.tool-page :is(.ch-tabs,.ch-empty){background:var(--bg-soft);border-color:var(--line);color:var(--text)}
+html[data-theme] body.tool-page .ch-tabs button[aria-selected="true"]{background:var(--surface);color:var(--green-dark)}
+html[data-theme] body.tool-page .ch-chip:has(input:checked){background:var(--green-soft);color:var(--green-dark);border-color:var(--green)}
+html[data-theme] body.tool-page .ch-primary{background:var(--accent);color:#15200c;border-color:var(--accent)}
+html[data-theme] body.tool-page .ch-table td{border-color:var(--line)}
+/* Legacy style owner: migrate nested surfaces without changing behavior. */
+html[data-theme] body.tool-page :is(.combo-list,.metric,.batch-job,.history-combo>input){background:var(--surface);color:var(--text);border-color:var(--line);box-shadow:var(--shadow)}
+html[data-theme] body.tool-page :is(.metric-warn,.notes-card,.tier-behavioral,.lb-proto-warn,.lb-score-warn,.lb-history-score-warn){background:var(--warning-soft);color:var(--amber);border-color:var(--amber)}
+html[data-theme] body.tool-page :is(.alert-card,.batch-error-detail,.lb-proto-fail,.lb-score-fail,.lb-history-score-fail){background:var(--danger-soft);color:var(--red);border-color:var(--red)}
+html[data-theme] body.tool-page :is(.status-live,.lb-proto-ok,.lb-proto-good,.lb-history-score-ok,.lb-history-score-good,.lb-score-good){background:var(--green-soft);color:var(--green-dark);border-color:var(--green)}
+html[data-theme] body.tool-page :is(.tier-protocol,.history-badge,.history-score){color:var(--muted)}
+html[data-theme] body.tool-page :is(.batch-progress){background:var(--soft);}
+html[data-theme] body.tool-page :is(.faq-entry,.faq-toc,.faq-category){background:var(--surface);color:var(--text);border-color:var(--line)}
+html[data-theme] body.tool-page .site-footer{background:var(--bg-soft);color:var(--muted);border-color:var(--line)}

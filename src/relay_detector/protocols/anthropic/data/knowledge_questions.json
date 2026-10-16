@@ -1,0 +1,42 @@
+{
+  "version": "1.1",
+  "notes": "Coverage-only bank — first version had a 'knowledge_cutoff' critical question, but empirical testing showed Claude Haiku 4.5 itself reports an inaccurate cutoff (e.g. 'April 2024' vs the documented Feb 2025), so model self-reported cutoff carries no signal. All current questions are general Anthropic/Claude facts, bundled in one prompt.",
+  "questions": [
+    {
+      "id": "anthropic_ceo",
+      "type": "coverage",
+      "prompt": "Who is the CEO of Anthropic? Reply with the full name only.",
+      "expected_keywords": ["dario", "amodei"],
+      "anti_keywords": ["i don't know", "not sure", "unknown"]
+    },
+    {
+      "id": "anthropic_president",
+      "type": "coverage",
+      "prompt": "Who is the President of Anthropic? Reply with the full name only.",
+      "expected_keywords": ["daniela", "amodei"],
+      "anti_keywords": ["i don't know", "not sure", "unknown"]
+    },
+    {
+      "id": "constitutional_ai",
+      "type": "coverage",
+      "prompt": "What is Constitutional AI? Reply in one short sentence.",
+      "expected_keywords": ["principles", "values", "harmful", "feedback", "rules"],
+      "expected_keyword_match": "any",
+      "anti_keywords": ["i don't know", "not sure"]
+    },
+    {
+      "id": "claude_first_release",
+      "type": "coverage",
+      "prompt": "In what year was the first Claude model publicly released? Reply with the year only.",
+      "expected_keywords": ["2023"],
+      "anti_keywords": ["i don't know", "not sure"]
+    },
+    {
+      "id": "anthropic_hq",
+      "type": "coverage",
+      "prompt": "In which US city is Anthropic headquartered? Reply with the city name only.",
+      "expected_keywords": ["san francisco"],
+      "anti_keywords": ["i don't know", "not sure"]
+    }
+  ]
+}

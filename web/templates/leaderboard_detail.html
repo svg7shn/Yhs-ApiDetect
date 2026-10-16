@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% set domain = relay.domain %}
+{% set median = relay.overall_median %}
+{% set count = relay.total_count %}
+{% set ranked = relay.is_ranked %}
+{% set verdict_label = '优秀' if median >= 85 else ('通过' if median >= 70 else ('存在风险' if median >= 50 else '未达标')) %}
+
+{% block title %}{{ domain }} 中转站怎么样?{{ count }} 次实测,中位 {{ "%.0f"|format(median) }}/100 · {{ verdict_label }} | Yhs-ApiDetect{% endblock %}
+{% block description %}{{ domain }} 中转站的真实质量评测:基于 Yhs-ApiDetect {{ count }} 份独立检测报告聚合,中位分 {{ "%.0f"|format(median) }}/100,判定「{{ verdict_label }}」。覆盖协议:{{ relay.protocols_label }}。详情含每份报告时间、模型、扣分项与原始检测链接。{% endblock %}
+{% block og_title %}{{ domain }} 是真 Claude / GPT / Gemini 吗?{{ "%.0f"|format(median) }}/100{% endblock %}
+{% block og_description %}{{ count }} 份 Yhs-ApiDetect 公开检测报告聚合,识别中转站协议合规、能力剥离、字段伪造。点击查看每份原始报告。{% endblock %}
+
+{% block canonical %}https://Yhs-ApiDetect.org/leaderboard/{{ domain }}{% endblock %}
+{% block og_url %}https://Yhs-ApiDetect.org/leaderboard/{{ domain }}{% endblock %}
+
+{% block head_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "首页", "item": "https://Yhs-ApiDetect.org/"},
+    {"@type": "ListItem", "position": 2, "name": "中转站红黑榜", "item": "https://Yhs-ApiDetect.org/leaderboard"},
+    {"@type": "ListItem", "position": 3, "name": "{{ domain }}", "item": "https://Yhs-ApiDetect.org/leaderboard/{{ domain }}"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ domain }} 中转站质量实测 · 中位 {{ "%.0f"|format(median) }}/100",
+  "description": "{{ domain }} 基于 {{ count }} 份 Yhs-ApiDetect 独立检测报告的聚合评分,判定「{{ verdict_label }}」",
+  "url": "https://Yhs-ApiDetect.org/leaderboard/{{ domain }}",
+  "publisher": {"@type": "Organization", "name": "Yhs-ApiDetect", "url": "https://Yhs-ApiDetect.org"},
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true{% if relay.last_checked %},
+  "dateModified": "{{ relay.last_checked.strftime('%Y-%m-%d') }}"{% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="面包屑">
+  <a href="/">首页</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="/leaderboard">红黑榜</a>
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">{{ domain }}</span>
+</nav>
+
+<section class="hub-hero">
+  <h1>{{ domain }} 中转站怎么样?</h1>
+  <p class="answer-capsule">
+    <strong>{{ domain }}</strong> 在 Yhs-ApiDetect 上累计 <strong>{{ count }}</strong> 次独立检测,
+    中位分 <strong>{{ "%.0f"|format(median) }}/100</strong>,判定<strong>「{{ verdict_label }}」</strong>。
+    覆盖协议:<strong>{{ relay.protocols_label }}</strong>。
+    {% if not ranked %}
+      <span class="lb-badge-info">样本 &lt; 2,数据仅供参考</span>
+    {% endif %}
+    {% if relay.last_checked %}
+      最近一次检测:{{ relay.last_checked.strftime('%Y-%m-%d') }}。
+    {% endif %}
+  </p>
+</section>
+
+<section class="lb-detail-summary">
+  <div class="lb-detail-score lb-score-{{ relay.verdict_class }}">
+    <span class="lb-detail-score-num">{{ "%.0f"|format(median) }}</span>
+    <span class="lb-detail-score-label">中位分</span>
+  </div>
+  <div class="lb-detail-protocols">
+    <h2>各协议表现</h2>
+    <div class="lb-protocols">
+      {% for proto, ps in relay.by_protocol.items() %}
+        {% set verdict_zh = verdict_labels.get(ps.last_verdict, ps.last_verdict) %}
+        {% set badge_class = 'ok' if ps.last_score >= 85 else ('good' if ps.last_score >= 70 else ('warn' if ps.last_score >= 50 else 'fail')) %}
+        <a class="lb-proto-chip lb-proto-{{ badge_class }}" href="/r/{{ ps.last_job_id }}" title="查看 {{ protocol_labels.get(proto, proto) }} 最新报告">
+          <span class="lb-proto-name">{{ protocol_labels.get(proto, proto) }}</span>
+          <span class="lb-proto-score">{{ "%.0f"|format(ps.last_score) }}</span>
+          <span class="lb-proto-verdict">{{ verdict_zh }}</span>
+          <span class="lb-proto-count">×{{ ps.count }}</span>
+        </a>
+      {% endfor %}
+    </div>
+    <p class="lb-detail-hint">
+      点击任一协议徽章查看该协议下最近一次的完整检测报告。下方表格列出全部历史。
+    </p>
+  </div>
+</section>
+
+{% if failed_summary %}
+<section class="lb-detail-issues">
+  <h2>{{ domain }} 最常出问题的检测项</h2>
+  <p class="lb-detail-hint">
+    以下 detector 在 {{ domain }} 的历史检测中最常被判失败 —— 这些就是该中转站的"软肋"。
+  </p>
+  <ul class="lb-issues-list">
+    {% for name, cnt in failed_summary %}
+      <li>
+        <code>{{ name }}</code>
+        <span class="lb-issues-count">{{ cnt }} 次失败</span>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="lb-detail-history">
+  <h2>{{ domain }} 全部检测历史 · {{ count }} 份报告</h2>
+  <p class="lb-detail-hint">
+    每份报告都是某次具体的真实请求,点击即可查看完整字段级证据。
+  </p>
+  <div class="lb-history-table-wrap">
+    <table class="lb-history-table">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>协议</th>
+          <th>测试模型</th>
+          <th class="num">分数</th>
+          <th>判定</th>
+          <th class="num">扣分项</th>
+          <th>报告</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in history %}
+        <tr>
+          <td>{{ j.date_str }}</td>
+          <td>{{ protocol_labels.get(j.protocol, j.protocol) }}</td>
+          <td><code>{{ j.model }}</code></td>
+          <td class="num">
+            <span class="lb-history-score lb-history-score-{{ j.badge_class }}">
+              {{ "%.0f"|format(j.score) }}
+            </span>
+          </td>
+          <td>{{ verdict_labels.get(j.verdict, j.verdict) }}</td>
+          <td class="num">{{ j.failed_count }}</td>
+          <td><a href="/r/{{ j.job_id }}">查看 →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="hub-note">
+  <h2>想自己测一下 {{ domain }}?</h2>
+  <p>
+    Yhs-ApiDetect 完全免费,无需注册,API key 不落盘。选对应协议页面填入 base_url 和 key
+    即可在 30–75 秒内拿到独立的检测报告并自动汇入此榜:
+    <a href="/claude">Claude 检测</a> ·
+    <a href="/openai">OpenAI 检测</a> ·
+    <a href="/gemini">Gemini 检测</a>。
+  </p>
+</section>
+
+<section class="hub-note">
+  <h2>这页数据怎么来的?</h2>
+  <p>
+    本页所有数据来自社区在 Yhs-ApiDetect 上对 <strong>{{ domain }}</strong> 进行的
+    <strong>{{ count }}</strong> 次公开检测。每份原始报告永久保存在
+    <code>/r/{job_id}</code> 路径,可随时点击核对。中位分用于排名(避免极端值干扰),
+    最近一次 verdict 决定每个协议的颜色徽章。<a href="/leaderboard">回到完整红黑榜 →</a>
+  </p>
+</section>
+{% endblock %}

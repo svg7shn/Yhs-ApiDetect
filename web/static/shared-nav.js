@@ -1,0 +1,1 @@
+(() => { const header=document.getElementById('header'); if(!header)return; const update=()=>{header.classList.toggle('stage1',scrollY>90);header.classList.toggle('stage2',scrollY>360);};addEventListener('scroll',update,{passive:true});update();})();

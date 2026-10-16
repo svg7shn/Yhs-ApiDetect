@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "relay-detector"
+version = "1.2.0"
+description = "Yhs-ApiDetect · AI API relay station quality and authenticity detector"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Yhs-ApiDetect" }]
+readme = "README.md"
+requires-python = ">=3.10"
+urls = { Homepage = "https://Yhs-ApiDetect.org", Repository = "https://github.com/svg7shn/Yhs-ApiDetect" }
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.6",
+    "typer>=0.12",
+    "rich>=13.7",
+    "rapidfuzz>=3.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "reportlab>=4.0",  # only for scripts/build_test_pdf.py — runtime doesn't need it
+]
+web = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "jinja2>=3.1",
+    "pillow>=10.2",
+    "python-multipart>=0.0.9",
+]
+
+[project.scripts]
+relay-detector = "relay_detector.cli:app"
+Yhs-ApiDetect = "relay_detector.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"relay_detector.protocols.anthropic" = ["data/*.json", "data/*.pdf"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# Keep pytest's tmp_path basetemp inside a gitignored repo directory: when the
+# system temp root is unwritable, pytest falls back to the cwd and litters the
+# checkout with pytest-of-<user>/ directories.
+addopts = "--basetemp=.pytest-tmp/basetemp"

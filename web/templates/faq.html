@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}常见问题 · AI API 中转站检测 | Yhs-ApiDetect{% endblock %}
+{% block description %}Yhs-ApiDetect 关于 AI API 中转站检测的 {{ total_count }} 个常见问题:Claude 真伪验证、OpenAI 后端伪装识别、Gemini 中转站协议合规、thinking signature 加密级检测原理。{% endblock %}
+{% block og_title %}AI API 中转站检测常见问题 · Yhs-ApiDetect{% endblock %}
+{% block og_description %}{{ total_count }} 个 Q&A 覆盖 Claude / OpenAI / Gemini 中转站真伪检测、协议合规、隐私安全。{% endblock %}
+{% block canonical %}https://Yhs-ApiDetect.org/faq{% endblock %}
+{% block og_url %}https://Yhs-ApiDetect.org/faq{% endblock %}
+
+{% block head_extra %}
+<script type="application/ld+json">
+{{ jsonld | safe }}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<section class="faq-hero">
+  <p class="faq-eyebrow">HELP CENTER / 帮助中心</p>
+  <h1>常见问题，快速找到答案。</h1>
+  <p class="faq-hero-sub">
+    Yhs-ApiDetect 是 AI API 中转站检测工具,通过 Claude thinking signature 加密级验证 + 协议字段
+    + 用量指纹,识别中转站是否真实透传 Claude / OpenAI / Gemini 模型。本页汇总 <strong>{{ total_count }} 个</strong>
+    关于中转站、真伪检测、工具使用、数据安全的常见问题。
+  </p>
+  <div class="faq-tools">
+    <label class="faq-search" for="faq-search">
+      <span class="faq-search-icon" aria-hidden="true"></span>
+      <span class="sr-only">搜索常见问题</span>
+      <input id="faq-search" type="search" placeholder="查找问题，例如：API Key 安全、Claude 签名…" autocomplete="off" />
+    </label>
+    <span class="faq-total">{{ total_count }} 个问题 · {{ categories|length }} 个主题</span>
+  </div>
+</section>
+
+<div class="faq-layout">
+  <!-- Sticky TOC on desktop; collapses to a header card on mobile -->
+  <aside class="faq-toc">
+    <div class="faq-toc-title">目录</div>
+    <ul class="faq-toc-list">
+      {% for cat in categories %}
+      <li><a href="#{{ cat.id }}">{{ cat.title }}</a> <span class="faq-toc-count">{{ cat.entries|length }}</span></li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <main class="faq-main">
+    <p class="faq-search-empty" id="faq-search-empty" role="status" hidden>没有找到匹配的问题，请换个关键词试试。</p>
+    {% for cat in categories %}
+    <section class="faq-category" id="{{ cat.id }}">
+      <p class="faq-category-kicker">主题 {{ "%02d"|format(loop.index) }}</p>
+      <h2>{{ cat.title }}</h2>
+      <p class="faq-category-intro">{{ cat.intro }}</p>
+
+      <div class="faq-entries">
+        {% for entry in cat.entries %}
+        <details class="faq-entry" id="{{ cat.id }}-{{ entry.id }}">
+          <summary class="faq-q">
+            {{ entry.q }}
+            <a class="faq-permalink" href="#{{ cat.id }}-{{ entry.id }}" aria-label="复制链接到该问题">#</a>
+          </summary>
+          {# entry.a may contain limited inline HTML (<strong>, <code> etc.)
+             from faq_data.py — that file is fully under our control, no user
+             input ever reaches this template, so |safe is safe. #}
+          <div class="faq-a">{{ entry.a | safe }}</div>
+        </details>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    <section class="faq-no-answer">
+      <h2>没找到答案?</h2>
+      <p>
+        欢迎在
+        <a href="https://github.com/svg7shn/Yhs-ApiDetect" target="_blank" rel="noopener">GitHub</a>
+        提 issue,或者直接<a href="/claude">跑一次检测</a>看实际结果 — Yhs-ApiDetect
+        的报告 details 里包含具体的扣分原因,通常自带答案。
+      </p>
+    </section>
+  </main>
+</div>
+
+<script>
+// Auto-expand the Q whose anchor is in the URL on load (so deep-links from
+// product pages land on the answer with it already open).
+(function () {
+  function openTarget() {
+    const hash = location.hash.slice(1);
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el && el.tagName === 'DETAILS') {
+      el.open = true;
+      // Defer so layout settles before scrolling
+      setTimeout(() => el.scrollIntoView({behavior: 'smooth', block: 'start'}), 50);
+    }
+  }
+  openTarget();
+  window.addEventListener('hashchange', openTarget);
+})();
+</script>
+<script>
+// Client-side FAQ filtering only; no query leaves this page.
+(function () {
+  const input = document.getElementById('faq-search');
+  const empty = document.getElementById('faq-search-empty');
+  if (!input || !empty) return;
+  const categories = Array.from(document.querySelectorAll('.faq-category'));
+  const normalize = (value) => value.toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+  input.addEventListener('input', function () {
+    const term = normalize(input.value);
+    let visible = 0;
+    categories.forEach(function (category) {
+      let found = 0;
+      category.querySelectorAll('.faq-entry').forEach(function (entry) {
+        const matches = !term || normalize(entry.textContent).includes(term);
+        entry.hidden = !matches;
+        if (matches) found++;
+      });
+      category.hidden = found === 0;
+      visible += found;
+    });
+    empty.hidden = visible !== 0;
+  });
+})();
+</script>
+{% endblock %}

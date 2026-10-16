@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}检测历史 · Yhs-ApiDetect{% endblock %}
+{% block description %}本地保存的 Yhs-ApiDetect 检测报告历史。{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="面包屑"><a href="/">首页</a><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">检测历史</span></nav>
+<section class="hub-hero"><h1>检测历史</h1><p class="answer-capsule">本页只读取当前机器已落盘的报告，按中转站地址筛选，不上传历史数据。</p></section>
+<section class="card history-filter">
+  <form method="get" action="/history" class="history-filter-form">
+    <div class="history-filter-field">
+      <label for="history-base-url">中转站接口地址</label>
+      <div class="combo history-combo">
+        <input id="history-base-url" name="base_url" type="text" value="{{ selected_base_url }}" placeholder="全部中转站" autocomplete="off" aria-controls="history-base-url-list" aria-autocomplete="list" />
+        <ul id="history-base-url-list" class="combo-list" role="listbox" hidden>
+          <li class="combo-item" data-value="" role="option">全部中转站</li>
+          {% for domain in domains %}<li class="combo-item" data-value="{{ domain }}" role="option">{{ domain }}</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">筛选</button>
+    {% if selected_base_url %}<a class="btn btn-ghost" href="/history">清除</a>{% endif %}
+  </form>
+</section>
+{% if reports %}
+<section class="history-list" aria-label="检测报告列表">
+  {% for r in reports %}
+  {% set score = r.total_score or 0 %}
+  {% set status = 'ok' if r.verdict == 'passed' else ('warn' if r.verdict == 'marginal' else 'fail') %}
+  <article class="card history-row" data-delete-url="/api/history/{{ r.job_id }}">
+    <div class="history-row-main">
+      <div class="history-row-title"><a href="/r/{{ r.job_id }}">{{ r.target_model or '未命名模型' }}</a><span class="history-badge history-badge-{{ status }}">{{ verdict_labels.get(r.verdict, r.verdict) }}</span></div>
+      <div class="history-meta"><a href="/history?base_url={{ r.base_url | urlencode }}">{{ r.base_url or '未知地址' }}</a> · {{ protocol_labels.get(r.protocol, r.protocol) }} · {{ r.mode }}</div>
+      <div class="history-time">{{ r.timestamp or '时间未知' }}</div>
+    </div>
+    <div class="history-score history-score-{{ status }}"><strong>{{ '%.0f'|format(score) }}</strong><span>/100</span></div>
+    <a class="btn btn-ghost history-report-link" href="/r/{{ r.job_id }}">查看报告</a>
+  </article>
+  {% endfor %}
+</section>
+{% else %}
+<section class="card history-empty"><h2>暂无本地检测记录</h2><p>完成一次检测后，报告会自动出现在这里。</p><a class="btn btn-primary" href="/">开始检测</a></section>
+{% endif %}
+<script>
+(() => {
+  const input = document.getElementById('history-base-url');
+  const list = document.getElementById('history-base-url-list');
+  if (!input || !list) return;
+  const items = Array.from(list.querySelectorAll('.combo-item'));
+  const filter = (query) => {
+    const q = (query || '').trim().toLowerCase();
+    items.forEach((item) => {
+      const value = item.dataset.value.toLowerCase();
+      item.hidden = Boolean(q) && value !== '' && !value.includes(q);
+    });
+    list.hidden = false;
+  };
+  items.forEach((item) => item.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    input.value = item.dataset.value;
+    list.hidden = true;
+    input.form.requestSubmit();
+  }));
+  input.addEventListener('focus', () => filter(input.value));
+  input.addEventListener('input', () => filter(input.value));
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') list.hidden = true;
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (event.target !== input && !list.contains(event.target)) list.hidden = true;
+  });
+})();
+</script>
+{% endblock %}

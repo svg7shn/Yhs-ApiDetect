@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 439 128" width="439" height="128" role="img" aria-label="Yhs-ApiDetect lockup B (dark)">
+  <title>Yhs-ApiDetect lockup B (dark)</title>
+  <g transform="translate(8,20) scale(0.9166)"><defs><linearGradient id="gB" x1="20" y1="74" x2="66" y2="34" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#10B981" stop-opacity=".55"/><stop offset="1" stop-color="#10B981" stop-opacity=".08"/></linearGradient></defs>
+  <polygon points="20,74 73.2,42.3 58.8,25.7" fill="url(#gB)"/>
+  <circle cx="20" cy="74" r="7.5" fill="#FFFFFF"/>
+  <g stroke="#10B981" stroke-width="2.6" stroke-linecap="round" opacity=".75">
+    <path d="M66 8 L66 16"/><path d="M66 52 L66 60"/><path d="M48 34 L56 34"/><path d="M76 34 L84 34"/>
+  </g>
+  <circle cx="66" cy="34" r="8.5" fill="#10B981"/></g>
+  <text x="132" y="80" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif" font-size="46" font-weight="700" letter-spacing="-0.8" fill="#FFFFFF">Yhs-ApiDetect</text>
+</svg>

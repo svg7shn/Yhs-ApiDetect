@@ -1,0 +1,17 @@
+/* Shared window chrome; content structure and controls stay untouched. */
+html[data-theme] body.tool-page{--window-fill:rgba(12,21,48,.82);--window-bar:rgba(76,109,190,.12);--window-dot:#7c9ddc}
+html[data-theme=light] body.tool-page{--window-fill:rgba(248,251,255,.9);--window-bar:rgba(78,119,191,.08);--window-dot:#6386bf}
+html[data-theme] body.tool-page :is(.card,.result-card,.auth-panel,.img-panel,.ch-panel,.ch-dialog,.auth-modal-glass,.faq-category,.faq-toc){
+ --window-pad:28px;position:relative;background:var(--window-fill);color:var(--text);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 56px #00000018;backdrop-filter:blur(20px);padding-top:76px;
+}
+html[data-theme] body.tool-page :is(.card,.result-card,.auth-panel,.img-panel,.ch-panel,.ch-dialog,.auth-modal-glass,.faq-category,.faq-toc)::before{
+ content:'YHS / DETECTION';box-sizing:border-box;position:absolute;left:0;right:0;top:0;height:48px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);border-radius:21px 21px 0 0;color:var(--muted);font:10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:1.2px;pointer-events:none;
+ background:radial-gradient(circle at 25px 24px,var(--window-dot) 0 3px,transparent 4px),radial-gradient(circle at 41px 24px,var(--window-dot) 0 3px,transparent 4px),radial-gradient(circle at 57px 24px,var(--window-dot) 0 3px,transparent 4px),var(--window-bar);
+}
+html[data-theme] body.tool-page .ch-dialog::before,html[data-theme] body.tool-page .auth-modal-glass::before{content:'YHS / EVIDENCE'}
+html[data-theme] body.tool-page :is(.faq-category,.faq-toc)::before{content:'YHS / GUIDE'}
+html[data-theme] body.tool-page .history-filter::before,html[data-theme] body.tool-page .history-row::before{content:'YHS / HISTORY'}
+html[data-theme] body.tool-page :is(.ch-table,table){border-color:var(--line)}
+html[data-theme] body.tool-page :is(.ch-table th,.ch-table td){border-color:var(--line)}
+html[data-theme] body.tool-page .auth-modal-glass{overflow:auto}
+@media(max-width:600px){html[data-theme] body.tool-page :is(.card,.result-card,.auth-panel,.img-panel,.ch-panel,.ch-dialog,.auth-modal-glass,.faq-category,.faq-toc){padding-top:66px;border-radius:18px}html[data-theme] body.tool-page :is(.card,.result-card,.auth-panel,.img-panel,.ch-panel,.ch-dialog,.auth-modal-glass,.faq-category,.faq-toc)::before{height:44px;border-radius:17px 17px 0 0;font-size:9px}}

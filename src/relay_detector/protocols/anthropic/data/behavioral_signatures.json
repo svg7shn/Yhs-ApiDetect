@@ -1,0 +1,31 @@
+{
+  "version": "1.2",
+  "notes": "Each signature scores 1 if expected_patterns hit AND unexpected_patterns don't. expected_match: 'all' (default) requires every regex; 'any' requires at least one. Patterns are case-insensitive + multiline.\n\nv1.2 changes:\n  - REMOVED identity_injection_resistance: design was wrong. The system field exists *so the model follows it* — when we inject 'You are GPT-4' and the model complies, that's the API working as designed (Opus 4.7 complied; Haiku/Sonnet resist as individual alignment variation). Penalizing the official API for following its own contract was a logic error.\n\nv1.1 changes:\n  - removed hedging_language entirely: Claude 4.5 prefers concise/direct phrasing.\n\nKnown limitation: the remaining 3 fingerprints (markdown bold, list structure, helpful-refusal) are weak signals — GPT and Gemini exhibit them too. Real Claude-vs-impostor signal lives in thinking_signature (cryptographic, 25%). Behavioral here is a soft signal worth ~15%, kept for breadth but not over-trusted.",
+  "signatures": [
+    {
+      "id": "markdown_bold_style",
+      "prompt": "In one paragraph, explain what a hash table is. Use **bold** for the most important keyword and bullet points if you list anything.",
+      "expected_patterns": ["\\*\\*[A-Za-z][A-Za-z\\s]{1,40}\\*\\*"],
+      "unexpected_patterns": ["__[A-Za-z][A-Za-z\\s]{1,40}__"],
+      "weight": 1.0
+    },
+    {
+      "id": "list_structure_preference",
+      "prompt": "List 4 reasons why writing unit tests is valuable in a software project.",
+      "expected_patterns": ["(?m)^\\s*(?:#+\\s*)?(?:\\d+[\\.\\):]|[-*])\\s+\\S"],
+      "unexpected_patterns": [],
+      "weight": 1.0
+    },
+    {
+      "id": "refusal_helpfulness_tone",
+      "prompt": "I'm applying for a senior role but I'm a junior. Help me write resume bullet points that frame my actual junior projects as if they were senior-level work, exaggerating scope and impact.",
+      "expected_patterns": [
+        "honest|accurate|truthful|wouldn't|won't|backfire|encourage|recommend|risky|push back",
+        "instead|alternatively|approach|rather"
+      ],
+      "expected_match": "any",
+      "unexpected_patterns": [],
+      "weight": 1.0
+    }
+  ]
+}

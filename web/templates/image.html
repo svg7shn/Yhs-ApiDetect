@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}生图检测 · 逐项核对生图接口的真实能力 · Yhs-ApiDetect{% endblock %}
+{% block description %}用你自己的 API Key 逐项调用中转站的生图接口,核对返回图片的尺寸、透明通道、指令编辑是否真的生效,请求与响应原样留证可下载复核。{% endblock %}
+{% block canonical %}https://Yhs-ApiDetect.org/image{% endblock %}
+{% block og_title %}Yhs-ApiDetect · 生图检测{% endblock %}
+{% block og_description %}六项生图接口检测:尺寸一致性 / 透明通道 / 指令编辑 / 协议字段,逐条取证。{% endblock %}
+{% block head_extra %}<link rel="stylesheet" href="/static/image.css?v=20261015-3" />{% endblock %}
+{% block content %}
+<div class="img-page">
+  <nav class="img-crumb" aria-label="面包屑">
+    <a href="/">首页</a><span class="img-crumb-sep">/</span><span aria-current="page">生图检测</span>
+  </nav>
+
+  <section class="img-hero">
+    <p class="img-eyebrow">IMAGE ENDPOINT VERIFY</p>
+    <h1>生图检测</h1>
+    <p class="img-lede">
+      把中转站地址和你的 API Key 填进下面,本页用同一个 Key 逐项调用它的生图接口:
+      请求透明背景看返回图里到底有没有 alpha 通道、请求固定尺寸看返回像素是否真的分毫不差、
+      请求改图看它有没有照指令改、顺手核对协议字段是否规范。每一次请求与响应都原样落盘,
+      结果卡里能直接下载复核——通过要有证据,不通过要看得见是哪一项。
+    </p>
+    <ul class="img-facts">
+      <li><strong>Key 不落盘</strong><span>只在这次检测的内存里用到结束</span></li>
+      <li><strong>六项逐条</strong><span>尺寸 / 透明 / 编辑 / 协议字段,一项一行</span></li>
+      <li><strong>上游不写死</strong><span>地址、模型、超时、重试都由你定</span></li>
+    </ul>
+  </section>
+
+  <section class="img-stats" aria-label="检测概览">
+    <article class="img-stat">
+      <p class="img-stat-label">可选测试项</p>
+      <p class="img-stat-value" data-stat="phases">{{ phases | length }}</p>
+    </article>
+    <article class="img-stat">
+      <p class="img-stat-label">本轮模型</p>
+      <p class="img-stat-value" data-stat="models">0</p>
+    </article>
+    <article class="img-stat">
+      <p class="img-stat-label">通过</p>
+      <p class="img-stat-value img-stat-ok" data-stat="passed">0</p>
+    </article>
+    <article class="img-stat">
+      <p class="img-stat-label">未通过</p>
+      <p class="img-stat-value img-stat-fail" data-stat="failed">0</p>
+    </article>
+  </section>
+
+  <div class="img-grid">
+    <section class="img-panel img-setup" aria-labelledby="img-setup-title">
+      <header class="img-panel-head">
+        <h2 id="img-setup-title">检测参数</h2>
+        <span class="img-badge">本站直连 · 无第三方服务</span>
+      </header>
+      <p class="img-panel-note">
+        地址填中转站根地址(如 <code>https://example.com</code>),不要带 <code>/v1</code>;
+        留空则用默认值 <code>{{ default_base_url }}</code>。
+      </p>
+
+      <div class="img-field">
+        <label for="img-base">中转站地址</label>
+        <input id="img-base" class="img-input" type="url" inputmode="url" spellcheck="false"
+               autocomplete="off" placeholder="{{ default_base_url }}" />
+      </div>
+
+      <div class="img-field">
+        <label for="img-key">API Key</label>
+        <div class="img-key-row">
+          <input id="img-key" class="img-input" type="password" spellcheck="false"
+                 autocomplete="off" placeholder="sk-..." />
+          <button id="img-key-toggle" class="img-btn img-btn-ghost" type="button" aria-pressed="false">显示</button>
+        </div>
+        <p class="img-hint">只在本机内存里用于这次检测:不写数据库、不写日志、刷新页面即丢。<br />地址与勾选项会记在本机浏览器里(方便下次接着用),Key 不记。</p>
+      </div>
+
+      <div class="img-field">
+        <div class="img-field-head">
+          <span class="img-field-label">模型</span>
+          <div class="img-field-actions">
+            <button id="img-models-load" class="img-btn img-btn-ghost" type="button">读取模型列表</button>
+            <button id="img-models-manual" class="img-btn img-btn-ghost" type="button" aria-pressed="false">手填模型名</button>
+          </div>
+        </div>
+        <p class="img-hint" id="img-models-hint">不勾选 = 自动检测该站全部具备图片能力的模型。</p>
+        <div id="img-models" class="img-models" hidden></div>
+        <textarea id="img-manual" class="img-input img-textarea" rows="3" spellcheck="false" hidden
+                  placeholder="每行一个模型名,例如&#10;gpt-image-1&#10;seedream-3.0"></textarea>
+      </div>
+
+      <div class="img-field">
+        <div class="img-field-head">
+          <span class="img-field-label">测试项</span>
+          <div class="img-field-actions">
+            <button id="img-phases-all" class="img-btn img-btn-ghost" type="button">全选</button>
+            <button id="img-phases-none" class="img-btn img-btn-ghost" type="button">清空</button>
+          </div>
+        </div>
+        <div class="img-chips" id="img-phases">
+          {% for phase in phases %}
+          <label class="img-chip" data-kind="{{ phase.kind }}">
+            <input type="checkbox" value="{{ phase.name }}" />
+            <span>{{ phase.label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="img-hint">不勾选 = 六项全跑;chat 类模型只会跑「聊天生图」那一项。</p>
+      </div>
+
+      <details class="img-adv">
+        <summary>高级参数</summary>
+        <div class="img-adv-grid">
+          <div class="img-field">
+            <label for="img-timeout">单请求超时(秒)</label>
+            <input id="img-timeout" class="img-input" type="number" min="5" max="900" step="5" value="{{ default_timeout }}" />
+          </div>
+          <div class="img-field">
+            <label for="img-retry">失败重试次数</label>
+            <input id="img-retry" class="img-input" type="number" min="0" max="5" step="1" value="0" />
+          </div>
+        </div>
+      </details>
+
+      <div class="img-actions">
+        <button id="img-run" class="img-btn img-btn-primary" type="button">开始检测</button>
+        <button id="img-reset" class="img-btn img-btn-ghost" type="button">清空结果</button>
+      </div>
+      <p id="img-alert" class="img-alert" role="alert" hidden></p>
+    </section>
+
+    <section class="img-panel img-run-panel" aria-labelledby="img-run-title">
+      <header class="img-panel-head">
+        <h2 id="img-run-title">检测进度</h2>
+        <span class="img-badge" id="img-state-badge">空闲</span>
+      </header>
+
+      <div id="img-task" hidden>
+        <p class="img-task-meta">任务 <code id="img-task-id">—</code></p>
+        <p class="img-task-current" id="img-task-current">等待开始…</p>
+        <div class="img-progress" id="img-progress" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="img-progress-bar"></span>
+        </div>
+        <p class="img-progress-text" id="img-progress-text">0 / 0 项</p>
+      </div>
+
+      <p class="img-empty" id="img-run-empty">还没有开始检测。填好左边的地址与 Key,点「开始检测」。</p>
+
+      <div class="img-plan" id="img-plan" aria-live="polite"></div>
+
+      <ul class="img-notes">
+        <li>每个模型按测试项逐条调用,单条失败不影响后面的条目。</li>
+        <li>同一时间只跑一个任务,重复点击会提示已有任务在跑。</li>
+        <li>结果与证据落在本机 <code>web_data/image/</code> 下,按任务分目录。</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="img-panel" aria-labelledby="img-results-title">
+    <header class="img-panel-head">
+      <h2 id="img-results-title">逐项结果</h2>
+      <span class="img-badge" id="img-count-badge">0 项</span>
+      <div class="img-panel-actions">
+        <button id="img-expand" class="img-btn img-btn-ghost" type="button" aria-pressed="true">收起逐项明细</button>
+      </div>
+    </header>
+    <p class="img-empty" id="img-results-empty">结果会随着检测逐条出现在这里。</p>
+    <div id="img-results" class="img-results"></div>
+  </section>
+
+  <section class="img-panel" aria-labelledby="img-history-title">
+    <header class="img-panel-head">
+      <h2 id="img-history-title">本机检测记录</h2>
+      <div class="img-panel-actions">
+        <button id="img-history-refresh" class="img-btn img-btn-ghost" type="button">刷新</button>
+      </div>
+    </header>
+    <p class="img-empty" id="img-history-empty">还没有历史记录。</p>
+    <div class="img-table-wrap" id="img-history-wrap" hidden>
+      <table class="img-table">
+        <thead>
+          <tr><th scope="col" aria-label="删除记录"></th><th>开始时间</th><th>中转站</th><th>模型 / 测试项</th><th>结果</th><th>状态</th></tr>
+        </thead>
+        <tbody id="img-history-body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.__IMAGE_BOOT__ = {
+    phases: {{ phases | tojson }},
+    defaultBaseUrl: {{ default_base_url | tojson }},
+    defaultTimeout: {{ default_timeout | tojson }},
+    backgrounds: {{ backgrounds | tojson }}
+  };
+</script>
+<script src="/static/image.js?v=20261013-record-delete" defer></script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}真实性检测 · 渠道真伪查验 · Yhs-ApiDetect{% endblock %}
+{% block description %}填入中转站地址与 API Key,读取模型列表后一键发起真实性检测:思考签名、原生协议结构、跨族残留、自报身份、缓存计量、参数校验交叉验证,给出 0~100 真实性评分。{% endblock %}
+{% block og_title %}Yhs-ApiDetect · AI API 中转站真实性检测{% endblock %}
+{% block og_description %}三段式一键检测:连接配置 → 模型选择 → 开始检测,结果自动归档并参与统计。{% endblock %}
+{% block canonical %}https://Yhs-ApiDetect.org/authenticity{% endblock %}
+{% block head_extra %}<link rel="stylesheet" href="/static/authenticity.css?v=20261015-4" />{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">真实性检测</span>
+  </nav>
+
+  <section class="auth-hero">
+    <p class="auth-eyebrow">CHANNEL AUTHENTICITY</p>
+    <h1>渠道真实性检测</h1>
+    <p class="auth-lede">
+      逐项采集难伪造证据:思考签名、原生协议结构、跨族残留、自报身份、缓存计量、参数校验,
+      并对能力基线做三题快测。判定与置信度随证据强弱变化,给出 0~100 真实性评分。
+    </p>
+  </section>
+
+  <section class="auth-panel">
+    <header class="auth-panel-head">
+      <h2>连接配置</h2>
+    </header>
+    <p class="auth-panel-note">
+      填入中转站地址与 API Key,检测会执行能力 / 协议 / 身份 / 签名等探针。
+      API Key 只保留在<b>当前页面内存</b>,每次检测随请求发送一次;不写入浏览器存储,服务端不落盘。
+    </p>
+    <div class="auth-conn-grid">
+      <div class="auth-field">
+        <label for="auth-base-url">中转站 Base URL</label>
+        <input id="auth-base-url" name="base_url" type="text" autocomplete="off" list="auth-base-url-list" placeholder="https://api.example.com/v1" />
+        <p class="auth-hint">填域名根路径即可;缺少 https:// 会自动补全,/v1 由后端拼接</p>
+      </div>
+      <div class="auth-field">
+        <label for="auth-api-key">API Key</label>
+        <input id="auth-api-key" name="api_key" type="password" autocomplete="off" placeholder="sk-..." />
+        <p class="auth-hint">仅存在当前页面,刷新即清空,不写入浏览器存储</p>
+      </div>
+    </div>
+    <datalist id="auth-base-url-list"></datalist>
+  </section>
+
+  <section class="auth-panel">
+    <header class="auth-panel-head">
+      <h2>模型选择</h2>
+      <div class="auth-panel-actions">
+        <button class="btn auth-btn" type="button" id="auth-load-models">刷新模型</button>
+      </div>
+    </header>
+    <p class="auth-panel-note" id="auth-models-note">
+      填好上面的地址与 Key,点「刷新模型」读取中转站的 <b>/models</b> 列表,再勾选要检测的模型。
+      每个模型按「模型 + 声称来源」逐项检测,同族模型共用一个声称来源。
+    </p>
+    <div id="auth-models-error" class="auth-alert" hidden></div>
+    <div id="auth-models" class="auth-models" aria-live="polite"></div>
+  </section>
+
+  <section class="auth-panel">
+    <header class="auth-panel-head">
+      <h2>测试参数</h2>
+      <span class="auth-chip" id="auth-run-chip" hidden>检测中 · 0 / 0</span>
+    </header>
+    <p class="auth-panel-note">
+      真实性检测对每个模型执行固定的一组信号采集(思考签名 / 协议结构 / 缓存计量 / 参数校验 / 身份 / 能力三题),
+      通常 30~75 秒 / 模型。同一时间只允许一个检测任务在跑,重复启动会被拒绝。
+    </p>
+    <div class="auth-params">
+      <div class="auth-field auth-field-narrow">
+        <label for="auth-timeout">单请求超时(秒)</label>
+        <input id="auth-timeout" type="number" min="5" max="300" step="5" value="45" />
+        <p class="auth-hint" id="auth-duration-hint">先在「模型选择」里勾选模型,这里会估算整轮耗时。</p>
+      </div>
+      <div class="auth-task" id="auth-task" hidden>
+        <p class="auth-task-label">当前任务</p>
+        <p class="auth-task-current" id="auth-task-current">空闲</p>
+        <div class="auth-progress" role="progressbar" aria-label="已完成模型比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="auth-progress"><span id="auth-progress-bar"></span></div>
+        <p class="auth-progress-text" id="auth-progress-text" role="status">等待检测开始</p>
+      </div>
+    </div>
+    <div id="auth-task-errors" class="auth-alert" hidden></div>
+    <button class="btn auth-btn auth-btn-primary auth-btn-block" type="button" id="auth-run-all">开始真实性检测</button>
+    <p class="auth-hint-soft">
+      检测即刻开始,<b>不需要先保存渠道</b>;本次勾选的检测目标会自动保存到服务端配置,结果自动归档到下方记录并参与统计。
+    </p>
+  </section>
+
+  <section class="auth-panel" id="auth-report-card">
+    <header class="auth-panel-head">
+      <h2>最近检测记录</h2>
+      <div class="auth-panel-actions">
+        <select id="auth-hours" class="auth-select">
+          <option value="24">最近 24 小时</option>
+          <option value="168" selected>最近 7 天</option>
+          <option value="720">最近 30 天</option>
+          <option value="0">全部</option>
+        </select>
+        <a class="btn auth-btn" href="/api/authenticity/report/export?hours=168" id="auth-export">导出 CSV</a>
+        <button class="btn auth-btn" type="button" id="auth-export-json">导出 JSON</button>
+        <button class="btn auth-btn" type="button" id="auth-export-md">导出 MD</button>
+      </div>
+    </header>
+    <p class="auth-panel-note">
+      点任意记录的「详情」查看完整探针明细(轨迹已脱敏,不含鉴权头)。
+      <b>传输错误不计入</b>真实率 / 疑似率 / 失败率的分母,分母只含已完成的检测。
+    </p>
+    <div id="auth-records" class="auth-records" aria-live="polite"></div>
+    <details class="auth-report-details" id="auth-report-details">
+      <summary>按协议族统计</summary>
+      <div id="auth-report" class="auth-report" aria-live="polite"></div>
+    </details>
+  </section>
+</div>
+
+<div class="auth-modal" id="auth-result-modal" hidden>
+  <div class="auth-modal-mask" data-modal-close="1"></div>
+  <div class="auth-modal-glass" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <span class="auth-sheen" aria-hidden="true"></span>
+    <span class="auth-sheen2" aria-hidden="true"></span>
+    <header class="auth-modal-head">
+      <div class="auth-modal-head-main">
+        <div id="auth-modal-verdict"></div>
+        <h2 id="auth-modal-title">检测结果</h2>
+        <p class="auth-modal-sub" id="auth-modal-sub"></p>
+      </div>
+      <button class="auth-modal-close" type="button" data-modal-close="1" aria-label="关闭">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+    <div class="auth-modal-body" id="auth-modal-body"></div>
+      <footer class="auth-modal-foot">
+      <button class="btn auth-btn" type="button" id="auth-modal-json">导出 JSON</button>
+      <button class="btn auth-btn" type="button" id="auth-modal-md">导出 MD</button>
+      <span class="auth-spacer"></span>
+      <button class="btn auth-btn auth-btn-primary" type="button" data-modal-close="1">关闭</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  window.__AUTH_SOURCES__ = {
+    sources: {{ sources | tojson }},
+    family_labels: {{ family_labels | tojson }},
+    wire_labels: {{ wire_labels | tojson }},
+    verdict_labels: {{ verdict_labels | tojson }}
+  };
+</script>
+<script src="/static/authenticity.js?v=20261014-no-stats"></script>
+{% endblock %}

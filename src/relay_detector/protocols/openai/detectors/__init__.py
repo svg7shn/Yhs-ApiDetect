@@ -1,0 +1,40 @@
+"""OpenAI Chat Completions detector registry."""
+
+from .base import ActiveDetector, BaseDetector, PassiveDetector
+from .basic_request import BasicRequestDetector
+from .function_calling import FunctionCallingDetector
+from .integrity import IntegrityDetector
+from .long_context import LongContextDetector
+from .model_consistency import ModelConsistencyDetector
+from .protocol import ProtocolDetector
+from .structured_output import StructuredOutputDetector
+from .token_billing import TokenBillingDetector
+
+
+def build_all() -> list[BaseDetector]:
+    return [
+        BasicRequestDetector(),
+        ModelConsistencyDetector(),
+        FunctionCallingDetector(),
+        StructuredOutputDetector(),
+        ProtocolDetector(),
+        IntegrityDetector(),
+        TokenBillingDetector(),
+        LongContextDetector(),
+    ]
+
+
+__all__ = [
+    "ActiveDetector",
+    "BaseDetector",
+    "BasicRequestDetector",
+    "FunctionCallingDetector",
+    "IntegrityDetector",
+    "LongContextDetector",
+    "ModelConsistencyDetector",
+    "PassiveDetector",
+    "ProtocolDetector",
+    "StructuredOutputDetector",
+    "TokenBillingDetector",
+    "build_all",
+]

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}批量检测进度 · Yhs-ApiDetect{% endblock %}
+{% block description %}查看全部模型检测任务的本地进度。{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="面包屑"><a href="/">首页</a><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">批量检测</span></nav>
+<section class="hub-hero"><h1>全部模型检测</h1><p class="answer-capsule">每个模型沿用现有检测接口独立执行；本页只轮询状态，不保存 API 密钥。</p></section>
+<section class="card batch-panel" id="batch-panel" data-job-ids='{{ job_ids | tojson }}'>
+  <div class="batch-summary"><strong id="batch-done">0</strong><span>/ {{ job_ids|length }} 个模型已完成</span><span id="batch-state">正在读取进度…</span></div>
+  <div class="batch-progress"><span id="batch-progress-fill"></span></div>
+  <div class="batch-jobs" id="batch-jobs"></div>
+  <p class="form-error" id="batch-error" hidden></p>
+</section>
+<script>
+(() => {
+  const panel = document.getElementById('batch-panel');
+  const ids = JSON.parse(panel.dataset.jobIds || '[]');
+  const list = document.getElementById('batch-jobs');
+  const doneEl = document.getElementById('batch-done');
+  const stateEl = document.getElementById('batch-state');
+  const fill = document.getElementById('batch-progress-fill');
+  const errorEl = document.getElementById('batch-error');
+  const labels = {queued:'排队中', running:'检测中', done:'已完成', error:'失败'};
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  async function poll() {
+    if (!ids.length) { stateEl.textContent = '没有可展示的任务'; return; }
+    const rows = await Promise.all(ids.map(async id => {
+      const r = await fetch('/api/status/' + encodeURIComponent(id));
+      if (!r.ok) throw new Error('任务 ' + id + ' 状态读取失败');
+      return await r.json();
+    }));
+    const finished = rows.filter(j => j.status === 'done' || j.status === 'error').length;
+    doneEl.textContent = finished;
+    fill.style.width = (finished / rows.length * 100) + '%';
+    list.innerHTML = rows.map(j => {
+      const link = j.status === 'done' ? ' <a class="btn btn-ghost btn-small" href="/r/' + encodeURIComponent(j.job_id) + '">查看报告</a>' : '';
+      const detail = j.status === 'error' ? '<div class="batch-error-detail">' + esc(j.error || '检测失败') + '</div>' : '';
+      return '<article class="batch-job"><div><strong>' + esc(j.target_model || j.job_id) + '</strong><span>' + esc(labels[j.status] || j.status) + '</span>' + detail + '</div>' + link + '</article>';
+    }).join('');
+    if (finished === rows.length) { stateEl.textContent = '全部任务已结束'; return; }
+    stateEl.textContent = '仍有 ' + (rows.length - finished) + ' 个任务进行中';
+    setTimeout(poll, 1800);
+  }
+  poll().catch(err => { errorEl.hidden = false; errorEl.textContent = err.message; stateEl.textContent = '状态读取失败'; });
+})();
+</script>
+{% endblock %}

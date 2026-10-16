@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
+<head>
+  <meta charset="utf-8" />
+<script src="/static/theme.js?v=20261014-1"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Yhs-ApiDetect · AI API 中转站检测工具{% endblock %}</title>
+  <meta name="description" content="{% block description %}免费在线检测 AI API 中转站质量。Claude 支持 thinking signature 加密级验证,OpenAI 支持 Chat Completions 行为/协议级检测。{% endblock %}" />
+  <meta name="keywords" content="AI API 中转站检测, Claude API 中转站, OpenAI 中转站检测, Gemini 中转站检测, API 中转站真伪, Claude thinking signature, API relay verification" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{% block og_title %}Yhs-ApiDetect · AI API 中转站检测{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}Claude 加密级验证与 OpenAI Chat Completions 检测已上线。{% endblock %}" />
+  <meta property="og:url" content="{% block og_url %}https://Yhs-ApiDetect.org/{% endblock %}" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta name="twitter:card" content="summary_large_image" />
+  {% block og_image %}{% endblock %}
+  <link rel="canonical" href="{% block canonical %}https://Yhs-ApiDetect.org/{% endblock %}" />
+  <link rel="stylesheet" href="/static/style.css?v=20261015-3" />
+  <link rel="icon" href="/static/favicon.svg?v=20261014-mark-b" type="image/svg+xml" />
+  <link rel="stylesheet" href="/static/record-delete.css?v=20261015-4" />
+  <script src="/static/record-delete.js?v=20261014-recovery" defer></script>
+  {% block head_extra %}{% endblock %}
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LWRPQF2182"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LWRPQF2182');
+  </script>
+<link rel="stylesheet" href="/static/page-theme.css?v=20261015-5">
+<link rel="stylesheet" href="/static/window-panels.css?v=20261015-1">
+<link rel="stylesheet" href="/static/shared-nav.css?v=1">
+<link rel="stylesheet" href="/static/shared-footer.css?v=20261015-1">
+</head>
+<body class="tool-page" data-page="{{ request.url.path }}">
+{% include "shared-nav.html" %}
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% include "shared-footer.html" %}
+  <script src="/static/shared-nav.js?v=1" defer></script>
+  <script src="/static/app.js?v=20260505-3" defer></script>
+</body>
+</html>

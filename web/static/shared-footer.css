@@ -1,0 +1,16 @@
+/* Shared footer: scoped independently of the header and legacy footer skin. */
+footer.yhs-footer{position:relative;z-index:1;flex-shrink:0;margin-top:auto;padding:30px 24px;border:0;background:transparent;color:var(--muted);font:12px/1.6 'Segoe UI','Microsoft YaHei',sans-serif}
+.yhs-footer .yhs-footer-inner{width:min(1420px,100%);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:28px}
+.yhs-footer .yhs-footer-identity{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.yhs-footer .yhs-footer-brand{display:inline-flex;align-items:center;gap:8px;color:var(--ink,var(--text));font-size:14px;white-space:nowrap}
+.yhs-footer img{display:block;width:24px;height:24px;border-radius:6px}
+.yhs-footer .yhs-footer-tag{font-size:11px;white-space:nowrap}
+.yhs-footer .yhs-footer-links{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 18px;min-width:0}
+.yhs-footer a{color:inherit;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;min-height:32px}
+.yhs-footer a:hover{color:var(--ink,var(--text));text-decoration:underline;text-underline-offset:4px}
+.yhs-footer a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+.yhs-footer .yhs-footer-meta{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:2px 10px;max-width:230px;flex-shrink:0;font-size:10px}
+.yhs-footer .yhs-footer-resources{display:flex;gap:12px}
+.yhs-footer .en{display:none}html[data-lang=en] .yhs-footer .zh{display:none}html[data-lang=en] .yhs-footer .en{display:inline}
+@media(max-width:1250px){.yhs-footer .yhs-footer-inner{flex-wrap:wrap;justify-content:center;gap:12px 24px}.yhs-footer .yhs-footer-meta{max-width:none;justify-content:center}}
+@media(max-width:600px){footer.yhs-footer{padding:26px 20px}.yhs-footer .yhs-footer-inner{flex-direction:column;align-items:flex-start;gap:16px}.yhs-footer .yhs-footer-identity{flex-wrap:wrap;gap:4px 12px}.yhs-footer .yhs-footer-links{justify-content:flex-start;gap:6px 18px}.yhs-footer a{min-height:40px}.yhs-footer .yhs-footer-meta{justify-content:flex-start;gap:0 10px}.yhs-footer .yhs-footer-meta a{min-height:32px}}

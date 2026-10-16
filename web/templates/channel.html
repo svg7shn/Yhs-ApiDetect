@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}渠道甄选检测 · Yhs-ApiDetect{% endblock %}
+{% block head_extra %}
+<link rel="stylesheet" href="/static/channel.css?v=20261015-nowrap" />
+<script src="/static/channel.js?v=20261015-grades" defer></script>
+{% endblock %}
+{% block content %}
+<div class="channel-page" id="channel-page">
+  <div class="ch-eyebrow">CHANNEL SCREENING</div>
+  <h1>渠道甄选检测</h1>
+  <p class="ch-muted">围绕声称来源，交叉检查协议、参数响应与能力表现。逐模型记录证据与异常，不把单一信号当作来源证明。</p>
+  <noscript><p class="ch-notice">请启用 JavaScript 以验证连接和执行检测。</p></noscript>
+  <section class="ch-panel" aria-labelledby="ch-connect-title">
+    <div class="ch-row ch-between"><h2 id="ch-connect-title">连接配置</h2><span id="ch-connection" class="ch-badge">尚未验证</span></div>
+    <form id="ch-connect-form" autocomplete="off">
+      <div class="ch-grid">
+        <label>中转站地址 · Base URL<input id="ch-url" type="url" placeholder="https://relay.example.com" autocomplete="off" spellcheck="false" required aria-describedby="ch-privacy" /></label>
+        <label>API Key<input id="ch-key" type="password" placeholder="输入本次检测使用的密钥" autocomplete="off" spellcheck="false" required aria-describedby="ch-privacy" /></label>
+        <label>传输协议<select id="ch-wire" aria-describedby="ch-wire-help"><option value="gpt" selected>OpenAI 兼容（适用三族模型）</option><option value="claude">Claude 原生（仅 Claude）</option><option value="gemini">Gemini 原生（仅 Gemini）</option></select></label>
+      </div>
+      <p class="ch-hint" id="ch-wire-help">按渠道实际支持的接口选择，默认 OpenAI 兼容；原生协议仅显示匹配族。不会自动切换协议重试。</p>
+      <div class="ch-row ch-between"><p class="ch-hint" id="ch-privacy">连接配置仅在本页内存中使用，不保存配置。检测记录保留渠道地址，不保留 Key。</p><button id="ch-connect" type="submit">验证连接并拉取模型</button></div>
+    </form>
+    <p id="ch-connect-status" role="status" aria-live="polite"></p>
+  </section>
+  <section class="ch-panel" aria-labelledby="ch-model-title">
+    <div class="ch-row ch-between"><h2 id="ch-model-title">模型选择</h2><label class="ch-check"><input type="checkbox" id="ch-all" disabled />全选渠道模型</label></div>
+    <p class="ch-hint">仅显示 Anthropic Claude、OpenAI、Google Gemini 对话模型；原样展示上游型号，不进行官方型号比对。</p>
+    <p id="ch-model-count" class="ch-muted" aria-live="polite">请先验证连接并拉取模型。</p>
+    <div id="ch-models"></div>
+    <div class="ch-row ch-between ch-parameter-entry"><div><h3>测试参数</h3><p class="ch-hint">进入弹窗，为每个模型选择声称来源。</p></div><button class="ch-primary" id="ch-configure" disabled>测试调参 →</button></div>
+  </section>
+  <section class="ch-panel" id="ch-progress-section" hidden aria-labelledby="ch-progress-title">
+    <h2 id="ch-progress-title">检测进度</h2>
+    <p id="ch-job-status" role="status" aria-live="polite"></p>
+    <progress id="ch-progress" max="1" value="0" aria-label="模型检测进度"></progress>
+    <p class="ch-hint">每个模型独立执行；单模型失败会记录错误并继续，不代表来源造假。</p>
+    <button id="ch-poll-retry" hidden>重试获取进度（不会重复启动）</button>
+    <div id="ch-job-records"></div>
+  </section>
+  <section class="ch-panel" aria-labelledby="ch-record-title">
+    <div class="ch-row ch-between"><h2 id="ch-record-title">最近检测记录</h2><div class="ch-row"><label class="ch-sr" for="ch-days">记录时间范围</label><select id="ch-days"><option value="1">最近 1 天</option><option value="7" selected>最近 7 天</option><option value="30">最近 30 天</option></select><button data-ch-export="csv">导出 CSV</button><button data-ch-export="json">导出 JSON</button><button data-ch-export="md">导出 MD</button></div></div>
+    <p class="ch-hint">加权通过率不是来源概率。协议兼容与能力表现不能证明订阅渠道。</p>
+    <form id="ch-search-form" class="ch-row"><label class="ch-sr" for="ch-search">搜索中转站地址</label><input id="ch-search" type="search" placeholder="搜索中转站地址" autocomplete="off" /><button type="submit">搜索</button><button id="ch-record-refresh" type="button">刷新</button></form>
+    <p id="ch-record-status" role="status" aria-live="polite"></p><div id="ch-records"></div>
+  </section>
+</div>
+<dialog id="ch-parameters" class="ch-dialog" aria-labelledby="ch-dialog-title" aria-describedby="ch-cost">
+  <div class="ch-row ch-between"><div><h2 id="ch-dialog-title">测试调参</h2><p id="ch-dialog-url" class="ch-muted"></p></div><button id="ch-config-close" aria-label="关闭测试调参">关闭</button></div>
+  <div id="ch-tabs" class="ch-tabs" role="tablist" aria-label="模型厂商"></div>
+  <fieldset id="ch-parameter-fields"><legend class="ch-sr">检测项配置</legend><div id="ch-family-panel" role="tabpanel" tabindex="0">
+    <div class="ch-row ch-between"><h3>检测项（模型 · 来源）</h3><label>统一来源<select id="ch-bulk-source" aria-label="为当前族统一设置来源"></select></label></div>
+    <p class="ch-hint">统一来源仅作用于当前族的检测项，不影响其他厂商。</p>
+    <div id="ch-targets"></div><button id="ch-add-model" type="button">＋ 从已拉取列表添加模型</button>
+  </div></fieldset>
+  <p id="ch-source-status" role="status" aria-live="polite"></p><button id="ch-source-retry" hidden>重新加载来源</button>
+  <p id="ch-cost" class="ch-notice">检测将向所选渠道发送真实 API 请求，可能产生费用。点击“开始立即检测”即确认本次检测及其费用；不会保存配置或自动巡检。</p>
+  <p class="ch-hint">来源仅为声明，不等于结论。「来源一致」由加权分与有效检查数共同判定，仍属概率判定。</p>
+  <p id="ch-start-status" role="status" aria-live="polite"></p>
+  <div class="ch-row ch-between"><span id="ch-target-count"></span><button id="ch-start" class="ch-primary" disabled>开始立即检测</button></div>
+</dialog>
+<dialog id="ch-detail" class="ch-dialog" aria-labelledby="ch-detail-title">
+  <div class="ch-row ch-between"><h2 id="ch-detail-title">检测证据详情</h2><button id="ch-detail-close">关闭</button></div>
+  <p class="ch-notice">协议兼容不证明订阅渠道。签名字段存在不等于本次验签成功；加权通过率不是来源概率，结论为概率判定。</p>
+  <div id="ch-detail-content" aria-live="polite"></div><button id="ch-detail-retry" hidden>重试加载详情</button>
+</dialog>
+{% endblock %}

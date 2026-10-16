@@ -1,0 +1,118 @@
+<header id="header">
+<nav aria-label="主导航">
+<a class="brand" href="/">
+<img src="/static/brand/B-icon.svg" alt="">
+<span>Yhs-ApiDetect</span>
+</a>
+<div class="navlinks">
+<a class="navitem" href="/"{% if request.url.path == "/" %} aria-current="page"{% endif %}  aria-label="首页">
+<b aria-hidden="true">⌂</b>
+<span class="navlabel">
+<span class="zh">首页</span>
+<span class="en">Home</span>
+</span>
+<span class="tip">
+<span class="zh">首页</span>
+<span class="en">Home</span>
+</span>
+</a>
+<a class="navitem" href="/authenticity"{% if request.url.path == "/authenticity" %} aria-current="page"{% endif %} aria-label="模型检测">
+<b aria-hidden="true">◈</b>
+<span class="navlabel">
+<span class="zh">模型检测</span>
+<span class="en">Models</span>
+</span>
+<span class="tip">
+<span class="zh">模型检测</span>
+<span class="en">Models</span>
+</span>
+</a>
+<a class="navitem" href="/channel"{% if request.url.path == "/channel" %} aria-current="page"{% endif %} aria-label="渠道检测">
+<b aria-hidden="true">⌘</b>
+<span class="navlabel">
+<span class="zh">渠道检测</span>
+<span class="en">Channels</span>
+</span>
+<span class="tip">
+<span class="zh">渠道检测</span>
+<span class="en">Channels</span>
+</span>
+</a>
+<a class="navitem" href="/image"{% if request.url.path == "/image" %} aria-current="page"{% endif %} aria-label="生图检测">
+<b aria-hidden="true">▧</b>
+<span class="navlabel">
+<span class="zh">生图检测</span>
+<span class="en">Images</span>
+</span>
+<span class="tip">
+<span class="zh">生图检测</span>
+<span class="en">Images</span>
+</span>
+</a>
+<a class="navitem" href="/claude"{% if request.url.path == "/claude" %} aria-current="page"{% endif %} aria-label="Claude">
+<b aria-hidden="true">✳</b>
+<span class="navlabel">
+<span class="zh">Claude</span>
+<span class="en">Claude</span>
+</span>
+<span class="tip">
+<span class="zh">Claude</span>
+<span class="en">Claude</span>
+</span>
+</a>
+<a class="navitem" href="/openai"{% if request.url.path == "/openai" %} aria-current="page"{% endif %} aria-label="OpenAI">
+<b aria-hidden="true">◎</b>
+<span class="navlabel">
+<span class="zh">OpenAI</span>
+<span class="en">OpenAI</span>
+</span>
+<span class="tip">
+<span class="zh">OpenAI</span>
+<span class="en">OpenAI</span>
+</span>
+</a>
+<a class="navitem" href="/gemini"{% if request.url.path == "/gemini" %} aria-current="page"{% endif %} aria-label="Gemini">
+<b aria-hidden="true">✧</b>
+<span class="navlabel">
+<span class="zh">Gemini</span>
+<span class="en">Gemini</span>
+</span>
+<span class="tip">
+<span class="zh">Gemini</span>
+<span class="en">Gemini</span>
+</span>
+</a>
+<a class="navitem" href="/history"{% if request.url.path == "/history" %} aria-current="page"{% endif %} aria-label="检测历史">
+<b aria-hidden="true">↺</b>
+<span class="navlabel">
+<span class="zh">检测历史</span>
+<span class="en">History</span>
+</span>
+<span class="tip">
+<span class="zh">检测历史</span>
+<span class="en">History</span>
+</span>
+</a>
+<a class="navitem" href="/faq"{% if request.url.path == "/faq" %} aria-current="page"{% endif %}  aria-label="常见问题">
+<b aria-hidden="true">?</b>
+<span class="navlabel">
+<span class="zh">常见问题</span>
+<span class="en">FAQ</span>
+</span>
+<span class="tip">
+<span class="zh">常见问题</span>
+<span class="en">FAQ</span>
+</span>
+</a>
+</div>
+<div class="tools">
+{% if request.url.path == "/" %}<button class="tool" id="language" aria-label="切换语言" title="中文 / English">EN</button>{% endif %}
+<button class="tool" id="theme" aria-label="切换明暗主题" title="切换明暗主题">☼</button>
+<a class="tool" href="https://github.com/svg7shn/Yhs-ApiDetect" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<path d="M9 20c-5 1-5-3-7-3m14 6v-4a4 4 0 0 0-1-3c3-.4 6-1.5 6-6a5 5 0 0 0-1.5-3.5A5 5 0 0 0 19 2s-1.5-.5-5 2a15 15 0 0 0-5 0C5.5 1.5 4 2 4 2a5 5 0 0 0-.5 4.5A5 5 0 0 0 2 10c0 4.5 3 5.6 6 6a4 4 0 0 0-1 3v4"/>
+</svg>
+</a>
+</div>
+</nav>
+</header>

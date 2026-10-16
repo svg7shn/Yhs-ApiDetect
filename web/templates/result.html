@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{# SEO meta — server-computed in server.py:_seo_meta_for_report based on
+   report's domain, score, verdict, pass/fail counts. Each /r/{id} becomes
+   its own indexable landing page for "what does relay X look like" queries.
+   Falls back to generic strings if seo_* values missing (legacy reports). #}
+{% block title %}{{ seo_title or '检测结果 · Yhs-ApiDetect' }}{% endblock %}
+{% block description %}{{ seo_description or 'AI API 中转站检测报告' }}{% endblock %}
+{% block og_title %}{{ seo_title or '中转站检测报告 · Yhs-ApiDetect' }}{% endblock %}
+{% block og_description %}{{ seo_og_description or seo_description or 'AI API 中转站检测报告' }}{% endblock %}
+{% block canonical %}https://Yhs-ApiDetect.org/r/{{ job_id }}{% endblock %}
+{% block og_url %}https://Yhs-ApiDetect.org/r/{{ job_id }}{% endblock %}
+{# 微信 / 推特 / Reddit / Discord 分享时显示报告卡片 — JPG 由 /r/{id}.jpg
+   按需渲染,1400×1000,内含分数、verdict、扣分项摘要。 #}
+{% block og_image %}
+  <meta property="og:image" content="https://Yhs-ApiDetect.org/r/{{ job_id }}.jpg" />
+  <meta property="og:image:width" content="1400" />
+  <meta property="og:image:height" content="1000" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:alt" content="{{ seo_og_description or 'Yhs-ApiDetect 中转站检测报告' }}" />
+  <meta name="twitter:image" content="https://Yhs-ApiDetect.org/r/{{ job_id }}.jpg" />
+{% endblock %}
+
+{% block content %}
+{# Breadcrumb: 首页 › 检测历史 › {domain} › {target_model}.
+   The public leaderboard remains a separate route; report navigation stays
+   within the machine-local detection history. #}
+<nav class="breadcrumb" aria-label="面包屑">
+  <a href="/">首页</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="/history">检测历史</a>
+  {% if breadcrumb_domain %}
+    <span class="breadcrumb-sep">›</span>
+    <a href="/history?base_url={{ report.base_url | urlencode }}">{{ breadcrumb_domain }}</a>
+  {% endif %}
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">{% if report.target_model %}{{ report.target_model }}{% else %}报告 #{{ job_id }}{% endif %}</span>
+</nav>
+
+{% set perf = report.performance or {} %}
+{% set usage = perf.usage or {} %}
+{% set score = report.total_score or 0 %}
+{% set verdict = report.verdict or 'failed' %}
+{% set protocol = report.protocol or 'anthropic' %}
+{# verdict drives both caption and color so any critical-issue downgrade
+   applied in scorer.effective_verdict() is honored. The classification was
+   previously score-driven, which let a 75% relay with detected impersonation
+   render as a green circle and "基本通过" caption — visually contradicting
+   the red critical findings below. #}
+{% if verdict == 'passed' and score >= 95 and protocol == 'anthropic' %}
+  {% set caption = '完全一致' %}{% set verdict_class = 'ok' %}
+{% elif verdict == 'passed' and score >= 85 %}
+  {% set caption = '协议表现良好' if protocol in ['openai', 'gemini'] else '优秀' %}
+  {% set verdict_class = 'ok' %}
+{% elif verdict == 'passed' %}
+  {% set caption = '基本通过' if protocol in ['openai', 'gemini'] else '通过' %}
+  {% set verdict_class = 'ok-dim' %}
+{% elif verdict == 'marginal' %}
+  {% set caption = '存在风险' if protocol in ['openai', 'gemini'] else '基本合格' %}
+  {% set verdict_class = 'warn' %}
+{% else %}
+  {% set caption = '未达标' %}{% set verdict_class = 'fail' %}
+{% endif %}
+
+<section class="result-head">
+  <div>
+    <h1>检测结果</h1>
+    <p class="muted">
+      模型:<code>{{ report.target_model }}</code> · 模式 <code>{{ report.mode }}</code> ·
+      中转站 <code>{{ report.base_url }}</code>
+    </p>
+  </div>
+  <div class="result-actions">
+    <a class="btn btn-ghost" href="/r/{{ job_id }}.jpg" download="Yhs-ApiDetect-{{ job_id }}.jpg">
+      下载 JPG
+    </a>
+    <button class="btn btn-ghost" id="share-btn" type="button">分享</button>
+  </div>
+</section>
+
+{% if report.run_error %}
+<section class="card alert-card">
+  <strong>检测无效:</strong>
+  {{ report.run_error }}
+</section>
+{% endif %}
+
+{% if report.tier_title or report.tier_message %}
+<section class="card alert-card">
+  <strong>{{ report.tier_title or report.tier }}:</strong>
+  {{ report.tier_message }}
+</section>
+{% endif %}
+
+<section class="result-card">
+  <div class="result-left">
+    <div class="score-ring score-{{ verdict_class }}">
+      <div class="score-inner">
+        <div class="score-num">{{ '%.0f' | format(score) }}%</div>
+        <div class="score-caption">{{ caption }}</div>
+      </div>
+    </div>
+    <p class="muted small attribution">由 https://Yhs-ApiDetect.org 生成</p>
+  </div>
+
+  <div class="result-right">
+    <ul class="check-list">
+      {% for row in rows %}
+      <li class="check-row check-{{ row.css }}">
+        <span class="check-icon">
+          {% if row.css == 'ok' %}
+          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#10b981"/><path d="M7 12.5l3.2 3.2L17 9" stroke="white" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {% elif row.css == 'warn' %}
+          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#f59e0b"/><path d="M12 7v6M12 16.5v.5" stroke="white" stroke-width="2.4" stroke-linecap="round"/></svg>
+          {% elif row.css == 'fail' %}
+          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#ef4444"/><path d="M8 8l8 8M16 8l-8 8" stroke="white" stroke-width="2.4" stroke-linecap="round"/></svg>
+          {% else %}
+          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="none" stroke="#9ca3af" stroke-width="2"/></svg>
+          {% endif %}
+        </span>
+        <span class="check-label">{{ row.label }}</span>
+        <span class="check-status">{{ row.label_short }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+{% if report_notes %}
+<section class="card notes-card">
+  <h2>这份结果怎么理解?</h2>
+  {% for note in report_notes %}
+  <div class="note-item">
+    <strong>{{ note.title }}</strong>
+    <p>{{ note.body }}</p>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="metrics-row metrics-row-5">
+  <div class="metric{% if perf.ttft_ms and perf.ttft_ms > 2000 %} metric-warn{% endif %}">
+    <div class="metric-label">首 TOKEN</div>
+    <div class="metric-value" title="Time to first token,从发出请求到收到第一个真实 token 的时间(取所有流式请求的最小值)">
+      {% if perf.ttft_ms is not none %}{{ perf.ttft_ms | fmt_ms }}{% else %}—{% endif %}
+    </div>
+  </div>
+  <div class="metric{% if (perf.total_latency_ms or 0) > 30000 %} metric-warn{% endif %}">
+    <div class="metric-label">总耗时</div>
+    <div class="metric-value" title="整批检测的钟表时间(并行运行,等于最慢 detector 的耗时)">
+      {{ (perf.total_latency_ms or 0) | fmt_ms }}
+    </div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">吞吐 (T/S)</div>
+    <div class="metric-value">
+      {% set out_t = (usage.output_tokens or 0) %}
+      {% set lat = (perf.total_latency_ms or 0) %}
+      {% if out_t and lat %}
+        {{ '%.1f' | format(out_t * 1000.0 / lat) }}
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">输入 TOKENS</div>
+    <div class="metric-value">{{ '{:,}'.format(usage.input_tokens or 0) }}</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">输出 TOKENS</div>
+    <div class="metric-value">{{ '{:,}'.format(usage.output_tokens or 0) }}</div>
+  </div>
+</section>
+
+{% if protocol == 'anthropic' and report.detected_non_anthropic_brands %}
+<section class="card alert-card">
+  <strong>⚠ 检测到非 Anthropic 后端品牌:</strong>
+  {{ report.detected_non_anthropic_brands | join(', ') }}
+</section>
+{% endif %}
+
+<section class="card details-card">
+  <details>
+    {% if protocol == 'openai' %}
+    <summary>OpenAI 检测项各自检查什么?</summary>
+    <dl class="def-list">
+      <dt>基础请求 (Basic Request)</dt>
+      <dd>发送最小 Chat Completions 请求,确认接口可用且能提取 assistant 文本。</dd>
+      <dt>模型一致性 (Model Consistency)</dt>
+      <dd>验证 <code>response.model</code> 与请求模型匹配,并检查低温多次调用的输出 token 稳定性。</dd>
+      <dt>函数调用 (Function Calling)</dt>
+      <dd>强制 tool_choice,验证 <code>call_</code> ID、<code>type=function</code>、函数名和 arguments JSON。</dd>
+      <dt>结构化输出 (Structured Output)</dt>
+      <dd>使用 <code>response_format=json_schema</code>,检查返回内容能否按 schema 解析。</dd>
+      <dt>协议规范性 (Protocol)</dt>
+      <dd>被动检查 <code>chatcmpl-</code> ID、<code>chat.completion</code>、choices、finish_reason、usage 等官方字段。</dd>
+      <dt>流式一致性 (Integrity)</dt>
+      <dd>比较同一 prompt 的 stream 与 non-stream 文本、finish_reason 和 usage 是否一致。</dd>
+      <dt>Token 计费</dt>
+      <dd>检查中转站返回的输入/输出 Token 数是否自洽,并和同一次检测里的流式/非流式结果、本地可预期的变化进行对比。</dd>
+      <dt>长上下文真实性 (Long Context)</dt>
+      <dd>需在提交时勾选启用 — 用 needle-in-haystack 在 32k → 100k → 200k tokens 三档探针,验证中转站是否真兑现宣传的 context window(识别截断 / 路由到小窗口模型)。极限档可按模型完整上限自适应探到 950k+。</dd>
+    </dl>
+    {% elif protocol == 'gemini' %}
+    <summary>Gemini 检测项各自检查什么?</summary>
+    <dl class="def-list">
+      <dt>基础请求</dt>
+      <dd>发送最小 <code>generateContent</code> 请求,确认接口可用且能提取 Gemini 文本响应。</dd>
+      <dt>模型响应形状</dt>
+      <dd>检查 <code>modelVersion</code>、<code>responseId</code>、<code>finishReason</code>、candidate 和 safety 字段是否完整。</dd>
+      <dt>函数调用</dt>
+      <dd>强制 Gemini 返回 <code>functionCall</code>,检查函数名和 args 是否是结构化对象。</dd>
+      <dt>结构化输出</dt>
+      <dd>使用 <code>responseMimeType=application/json</code> 和 <code>responseSchema</code>,检查返回内容能否按 schema 解析。</dd>
+      <dt>协议规范性</dt>
+      <dd>被动检查 <code>candidates</code>、<code>content.parts</code>、<code>safetyRatings</code>、<code>usageMetadata</code> 等 Gemini 原生字段。</dd>
+      <dt>流式一致性</dt>
+      <dd>比较同一 prompt 的 <code>generateContent</code> 与 <code>streamGenerateContent</code> 文本、结束原因和用量字段是否一致。</dd>
+      <dt>Token 用量</dt>
+      <dd>检查 <code>usageMetadata</code> 是否存在、Token 统计是否自洽,以及长短文本带来的 Token 增量是否合理。</dd>
+    </dl>
+    {% else %}
+    <summary>12 项检测各自检查什么?</summary>
+    <dl class="def-list">
+      <dt>身份一致性 (Identity)</dt>
+      <dd>询问模型自报身份,响应必须包含 "Claude" 与 "Anthropic",且不能自称是其他品牌(如 Kiro、AWS Q 等)。</dd>
+      <dt>行为签名验证 (Behavioral)</dt>
+      <dd>3 道行为指纹题(markdown 风格、列表偏好、拒绝语气),正版 Claude 有特征鲜明的回答模式。</dd>
+      <dt>思维签名验证 (Thinking) ⭐</dt>
+      <dd>核心检测:Claude thinking 块返回的加密 <code>signature</code> 字节,任何中转站都无法伪造。</dd>
+      <dt>模型一致性 (Consistency)</dt>
+      <dd>验证 <code>response.model</code> 与请求一致,且多次调用输出长度稳定(变异系数 CV)。</dd>
+      <dt>知识准确度 (Knowledge)</dt>
+      <dd>5 道关于 Anthropic 公司的常识题(CEO、HQ、Constitutional AI 等),错答多则说明背后不是真 Claude。</dd>
+      <dt>PDF 文档识别</dt>
+      <dd>提交一份 base64 PDF + magic 字符串,检查模型能否正确提取——剥离 multimodal 的中转站会失败。</dd>
+      <dt>结构化输出 (Tool Use)</dt>
+      <dd>真实 tool_use 调用,验证 <code>toolu_</code> ID 前缀、JSON schema 匹配、stop_reason 等 5 项子项。</dd>
+      <dt>协议规范性 (Protocol)</dt>
+      <dd>SSE 事件序列、content block 类型必须符合 Anthropic 官方规范(被动检测,不发额外请求)。</dd>
+      <dt>响应完整性 (Integrity)</dt>
+      <dd>同一 prompt 流式与非流式调用必须返回一致的文本、<code>input_tokens</code>、<code>stop_reason</code>。</dd>
+      <dt>Token 用量</dt>
+      <dd>检查 Claude Messages 的 <code>usage.input_tokens/output_tokens</code> 是否存在、长短 prompt 增量是否合理、短输出是否没有超报,并用 stream 与 <code>count_tokens</code> 做交叉验证。</dd>
+      <dt>消息标识规范 (Message ID)</dt>
+      <dd>消息 <code>id</code> 必须以 <code>msg_</code> 开头、tool 块以 <code>toolu_</code> 开头。UUID 或硬编码 <code>tool_1</code> 是典型造假特征。</dd>
+      <dt>长上下文真实性 (Long Context)</dt>
+      <dd>需在提交时勾选启用 — 用 needle-in-haystack 在 32k → 100k → 200k tokens 三档探针,验证中转站是否真兑现宣传的 context window(识别截断 / 路由到小窗口模型)。Anthropic 路径用官方 <code>count_tokens</code> 端点精准预算 token,极限档可按模型完整上限自适应探到 950k+(Sonnet 4.6 / Opus 4.6/4.7 都是 1M)。</dd>
+    </dl>
+    {% endif %}
+  </details>
+</section>
+
+<script>
+document.getElementById('share-btn').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(location.href);
+    const btn = document.getElementById('share-btn');
+    const orig = btn.textContent;
+    btn.textContent = '已复制!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  } catch (e) {}
+});
+</script>
+{% endblock %}
